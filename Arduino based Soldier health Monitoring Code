@@ -1,0 +1,99 @@
+```cpp
+#include <SoftwareSerial.h>
+#include <TinyGPS++.h>
+#include <LiquidCrystal.h>
+
+// LCD Pins
+LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
+
+// GPS Module
+TinyGPSPlus gps;
+SoftwareSerial gpsSerial(8, 9);   // RX, TX
+
+// GSM Module
+SoftwareSerial gsmSerial(6, 7);   // RX, TX
+
+// Components
+const int pulsePin = A0;
+const int buzzerPin = 10;
+const int ledPin = 13;
+
+int pulseValue = 0;
+int threshold = 550;
+
+void setup() {
+  Serial.begin(9600);
+
+  gpsSerial.begin(9600);
+  gsmSerial.begin(9600);
+
+  pinMode(buzzerPin, OUTPUT);
+  pinMode(ledPin, OUTPUT);
+
+  lcd.begin(16, 2);
+  lcd.print("Soldier Monitor");
+  delay(2000);
+  lcd.clear();
+}
+
+void loop() {
+
+  // Read Pulse Sensor
+  pulseValue = analogRead(pulsePin);
+
+  // Read GPS Data
+  while (gpsSerial.available() > 0) {
+    gps.encode(gpsSerial.read());
+  }
+
+  lcd.setCursor(0, 0);
+  lcd.print("Pulse:");
+  lcd.print(pulseValue);
+
+  if (gps.location.isValid()) {
+    lcd.setCursor(0, 1);
+    lcd.print(gps.location.lat(), 2);
+    lcd.print(",");
+    lcd.print(gps.location.lng(), 2);
+  }
+
+  // Emergency Condition
+  if (pulseValue < threshold) {
+
+    digitalWrite(buzzerPin, HIGH);
+    digitalWrite(ledPin, HIGH);
+
+    sendSMS();
+
+    delay(10000);
+
+  } else {
+
+    digitalWrite(buzzerPin, LOW);
+    digitalWrite(ledPin, LOW);
+  }
+
+  delay(1000);
+}
+
+void sendSMS() {
+
+  if (!gps.location.isValid()) return;
+
+  gsmSerial.println("AT+CMGF=1");
+  delay(1000);
+
+  gsmSerial.println("AT+CMGS=\"+91XXXXXXXXXX\"");
+  delay(1000);
+
+  gsmSerial.println("ALERT! Soldier may need assistance.");
+  gsmSerial.print("Location: ");
+  gsmSerial.print(gps.location.lat(), 6);
+  gsmSerial.print(",");
+  gsmSerial.println(gps.location.lng(), 6);
+
+  gsmSerial.write(26);
+
+  delay(3000);
+}
+```
