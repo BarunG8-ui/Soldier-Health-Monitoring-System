@@ -25,6 +25,14 @@
 7. Using the transmitted coordinates, the injured soldier can be located and rescued quickly.
 8. The entire system is powered by a rechargeable 12V Lithium-Ion Battery, making it suitable for field deployment.
 
+## 🎥 Project Demonstration
+  
+
+https://github.com/user-attachments/assets/8167b791-93de-4f9e-b30e-fa05a5a46ad2
+
+
+
+
 ## 🎯 Applications
 
 * Military and Defense Operations
